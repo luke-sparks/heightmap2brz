@@ -495,9 +495,13 @@ impl QuadTree {
         width: u32,
         height: u32,
     ) -> Vec<Brick> {
-        // Calculate offsets to center the bricks
-        let offset_x = -(width as i32 * options.size as i32);
-        let offset_y = -(height as i32 * options.size as i32);
+        // Center the bricks, but only ever by a whole tile. A tile spans
+        // `2 * size` units, so an odd dimension makes `-(dim * size)` land on a
+        // half-tile and every brick edge misses the grid by `size` (5 units at
+        // 1 stud). Rounding the shift down to a whole tile keeps even
+        // dimensions exactly where they were and pulls odd ones back on grid.
+        let offset_x = -((width as i32 / 2) * 2 * options.size as i32);
+        let offset_y = -((height as i32 / 2) * 2 * options.size as i32);
 
         // Fill layers (adjustment > 0) are lifted slightly so stacked layers
         // sit flush instead of z-fighting / floating.

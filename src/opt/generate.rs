@@ -302,9 +302,11 @@ pub fn gen_greedy_heightmap<F: Fn(f32) -> bool>(
     let mut all_bricks = Vec::new();
     let total_quads = all_quads.len();
 
-    // Calculate offsets to center the bricks
-    let offset_x = -(width as i32 * options.size as i32);
-    let offset_y = -(height as i32 * options.size as i32);
+    // Center the bricks by a whole tile only; see the note in
+    // `QuadTree::tiles_to_bricks`. An odd dimension otherwise shifts every
+    // brick edge off the grid by `size`.
+    let offset_x = -((width as i32 / 2) * 2 * options.size as i32);
+    let offset_y = -((height as i32 / 2) * 2 * options.size as i32);
 
     for (idx, (quad, h, color)) in all_quads.into_iter().enumerate() {
         if idx % 1000 == 0 {
