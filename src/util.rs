@@ -21,18 +21,6 @@ pub struct GenOptions {
     pub gen_full_layers_above_height: u32,
 }
 
-impl GenOptions {
-    pub fn base_height(&self) -> i32 {
-        if self.stud {
-            5
-        } else if self.micro {
-            1
-        } else {
-            2
-        }
-    }
-}
-
 // convert gamma to linear gamma
 pub fn to_linear_gamma(c: u8) -> u8 {
     let cf = (c as f64) / 255.0;

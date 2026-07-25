@@ -315,12 +315,11 @@ pub fn gen_greedy_heightmap<F: Fn(f32) -> bool>(
                     y as i32 * options.size as i32 * 2
                         + h_brick as i32 * options.size as i32
                         + offset_y,
-                    options.base_height() - 5
-                        + if options.img {
-                            0
-                        } else {
-                            z - brick_height as i32
-                        },
+                    if options.img {
+                        0
+                    } else {
+                        z - brick_height as i32
+                    },
                 ),
                 collision: Collision {
                     player: !options.nocollide,
