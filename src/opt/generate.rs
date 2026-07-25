@@ -34,13 +34,42 @@ pub fn gen_opt_heightmap<F: Fn(f32) -> bool>(
     options: GenOptions,
     progress_f: F,
 ) -> Result<Vec<Brick>, String> {
-    // Use greedy mesh if requested
-    if options.greedy {
-        return gen_greedy_heightmap(heightmap, colormap, options, progress_f);
+    let mut bricks = if options.greedy {
+        gen_greedy_heightmap(heightmap, colormap, options, progress_f)?
+    } else {
+        gen_quad_heightmap(heightmap, colormap, options, progress_f)?
+    };
+
+    rest_on_ground(&mut bricks);
+    Ok(bricks)
+}
+
+/// Lift the save so its lowest brick sits exactly on the ground plane.
+///
+/// A tile's brick hangs below its own surface by a varying amount — the `+1`
+/// skirt down to the lowest neighbor, the minimum thickness floor, and snap
+/// rounding all contribute — so the deepest point of a map is not something
+/// the per-tile math can know. Left alone the save either clips into the
+/// ground, which Brickadia refuses to place, or gets shoved upward by the
+/// placement and floats.
+fn rest_on_ground(bricks: &mut [Brick]) {
+    let lowest = bricks
+        .iter()
+        .filter_map(|b| match &b.asset {
+            BrickType::Procedural { size, .. } => Some(b.position.z - size.z as i32),
+            _ => None,
+        })
+        .min();
+
+    let Some(lowest) = lowest else { return };
+    if lowest == 0 {
+        return;
     }
 
-    // Use quad tree optimization
-    gen_quad_heightmap(heightmap, colormap, options, progress_f)
+    info!("Lifting save {lowest} units to rest on the ground");
+    for b in bricks.iter_mut() {
+        b.position.z -= lowest;
+    }
 }
 
 /// Generate a heightmap using quadtree optimization
