@@ -503,37 +503,23 @@ impl QuadTree {
         // sit flush instead of z-fighting / floating.
         let pos_adjust: i32 = if height_adjustment == 0 { 0 } else { 4 };
 
-        // Layered generation needs solid columns so the fill layers stack into
-        // continuous terrain. Without it, keep the cheaper surface-shell model
-        // that only spans the drop to the lowest neighbor.
-        let layered = options.gen_full_layers_above_height > 0;
-
         tiles
             .iter()
             .flat_map(|t| {
                 // skip merged tiles and (when culling) fully transparent tiles.
-                // Layered mode keeps ground-level tiles, since a layer's fill
-                // is what gives the terrain below it its body.
-                if t.parent.is_some()
-                    || options.cull && (t.color[3] == 0 || (!layered && t.height == 0))
-                {
+                // Ground-level tiles are kept even when culling: they are the
+                // base the terrain above them stands on.
+                if t.parent.is_some() || options.cull && t.color[3] == 0 {
                     return vec![];
                 }
 
                 let mut z = (options.scale * t.height) as i32;
 
-                let raw_height = if layered {
-                    // solid column from the layer below up to this tile's height
-                    max(t.height as i32 - height_adjustment as i32 + 1, 2)
-                } else {
-                    // difference of self and smallest neighbor
-                    max(
-                        t.height as i32
-                            - t.neighbors.iter().cloned().min().unwrap_or(0) as i32
-                            + 1,
-                        2,
-                    )
-                };
+                // solid column from the layer below up to this tile's height.
+                // Thickness depends only on the tile's own height, so every
+                // tile at a given height gets an identical brick regardless of
+                // what surrounds it.
+                let raw_height = max(t.height as i32 - height_adjustment as i32 + 1, 2);
                 let mut desired_height = max(raw_height * options.scale as i32 / 2, 2);
 
                 // snap bricks to grid
