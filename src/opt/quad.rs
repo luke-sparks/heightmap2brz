@@ -570,12 +570,11 @@ impl QuadTree {
                                 + offset_x,
                             (t.center.1 as i32 * 2 + t.size.1 as i32) * options.size as i32
                                 + offset_y,
-                            options.base_height() - 5
-                                + if options.img {
-                                    0
-                                } else {
-                                    z - height_u as i32 + pos_adjust
-                                },
+                            if options.img {
+                                0
+                            } else {
+                                z - height_u as i32 + pos_adjust
+                            },
                         ),
                         collision: Collision {
                             player: !options.nocollide,
